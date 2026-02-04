@@ -1,21 +1,23 @@
-# Codex macOS通知 -> Slack
+# Codex macOS Notifications -> Slack
 
-Codex Desktop のログから通知イベント（例: `turn-complete`）を検知して Slack に投稿します。
+Japanese README: [README.ja.md](./README.ja.md)
 
-![Slack通知の稼働イメージ](https://github.com/user-attachments/assets/8dfc2af4-01e3-4b20-a514-5dea2024dbf7)
+This project watches Codex Desktop logs for notification events (for example, `turn-complete`) and posts them to Slack.
 
-macOSの通知本文はログだけでは取れないため、**通知バナーUIを読む Helper.app**（AppleScript）を併用して本文/タイトルを拾います。
+![Slack notification example](https://github.com/user-attachments/assets/8dfc2af4-01e3-4b20-a514-5dea2024dbf7)
 
-## 出力フォーマット
+Because notification body text is not available in logs alone, it uses a **Helper.app that reads the notification banner UI** (AppleScript) to capture the title/body.
 
-Slackに以下の形式で投稿します（2行）:
+## Output Format
+
+It posts in this two-line format:
 
 ```text
-スレッドタイトル | 本文
+Thread title | Body
 `turn-complete: 58`
 ```
 
-本文が取れない場合は下の行だけになります:
+If the body cannot be read, only the second line is sent:
 
 ```text
 `turn-complete: 58`
@@ -24,21 +26,21 @@ Slackに以下の形式で投稿します（2行）:
 ## Requirements
 
 - macOS
-- `/usr/bin/python3`（標準ライブラリのみで動作）
+- `/usr/bin/python3` (standard library only)
 - Slack Incoming Webhook
 
 ## Setup
 
-### 1) Slack Incoming Webhook を作る
+### 1) Create a Slack Incoming Webhook
 
-- Slack側で Incoming Webhook を有効化して、通知用チャンネルに紐づけた Webhook URL を取得します。
-  - Slackアプリを作成（[Your Apps](https://api.slack.com/apps) の「Create New App」）
-  - アプリ設定で「Incoming Webhooks」を有効化（Activate Incoming Webhooks をON）
-  - 「Add New Webhook to Workspace」から投稿先チャンネルを選択してURL発行（Authorize）
-  - private channel に投稿する場合は、そのチャンネルに参加しておく必要があります
-  - 公式手順: [Slack公式: Sending messages using incoming webhooks](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)
+- Enable Incoming Webhooks and get a webhook URL for your target channel.
+- Create a Slack app at [Your Apps](https://api.slack.com/apps) (Create New App).
+- Enable Incoming Webhooks (turn on Activate Incoming Webhooks).
+- Use "Add New Webhook to Workspace" and authorize the target channel.
+- For private channels, join the channel before adding the webhook.
+- Official guide: [Sending messages using incoming webhooks](https://docs.slack.dev/messaging/sending-messages-using-incoming-webhooks/)
 
-### 2) Webhook URL を保存
+### 2) Store the Webhook URL
 
 ```bash
 mkdir -p "$HOME/.codex/codex-notify-slack"
@@ -46,75 +48,75 @@ printf '%s' 'https://hooks.slack.com/services/XXX/YYY/ZZZ' > "$HOME/.codex/codex
 chmod 600 "$HOME/.codex/codex-notify-slack/webhook_url"
 ```
 
-### 3) Helper.app を生成
+### 3) Build the Helper.app
 
 ```bash
 ./scripts/build-helper.sh
 ```
 
-生成先（デフォルト）:
+Default location:
 
 - `~/Applications/CodexNotifySlackHelper.app`
 
-### 4) 権限（最重要）
+### 4) Permissions (Important)
 
-システム設定で `CodexNotifySlackHelper.app` を許可します。
+Allow `CodexNotifySlackHelper.app` in System Settings.
 
-- 「プライバシーとセキュリティ > アクセシビリティ」: `CodexNotifySlackHelper.app` をON
-- 「プライバシーとセキュリティ > オートメーション」: `CodexNotifySlackHelper.app` が `System Events` を制御できるようにON
+- Privacy & Security > Accessibility: enable `CodexNotifySlackHelper.app`
+- Privacy & Security > Automation: allow `CodexNotifySlackHelper.app` to control `System Events`
 
-### 5) 手動実行（dry-run推奨）
+### 5) Run manually (dry-run recommended)
 
 ```bash
 python3 ./codex_notify_slack.py --dry-run
 ```
 
-本番:
+Production:
 
 ```bash
 python3 ./codex_notify_slack.py
 ```
 
-絞り込み（完全一致）:
+Filtering (exact match):
 
 ```bash
 python3 ./codex_notify_slack.py --deny-kinds wait
 python3 ./codex_notify_slack.py --allow-kinds turn-complete,permission
 ```
 
-`--allow-kinds` が空なら全送信、`--deny-kinds` は常に優先されます。
+If `--allow-kinds` is empty, all kinds are allowed. `--deny-kinds` always takes priority.
 
-## Run At Login (LaunchAgent)
+## Run at Login (LaunchAgent)
 
-インストール:
+Install:
 
 ```bash
 ./scripts/install-launchagent.sh
 ```
 
-アンインストール:
+Uninstall:
 
 ```bash
 ./scripts/uninstall-launchagent.sh
 ```
 
-ログ:
+Logs:
 
 ```bash
 tail -f /tmp/codex-notify-slack.out
 tail -f /tmp/codex-notify-slack.err
 ```
 
-手で触りたい場合は `launchagent/com.openai.codex.notify-slack.plist.example` も参照できます。
+If you want to customize the plist directly, see `launchagent/com.openai.codex.notify-slack.plist.example`.
 
 ## Troubleshooting
 
-- 本文が来ない/`-25211` が出る: `CodexNotifySlackHelper.app` のアクセシビリティ許可が入っていません
-- `-1743` が出る: オートメーションで `System Events` の許可が入っていません
-- 文字化け/例外で落ちる: Helper.app の出力エンコーディングは環境で変わるので、`/tmp/codex-notify-slack.err` を確認してください
+- No body / `-25211`: Accessibility permission is missing for `CodexNotifySlackHelper.app`
+- `-1743`: Automation permission for `System Events` is missing
+- Garbled text or crashes: check `/tmp/codex-notify-slack.err` for encoding-related errors
 
-## How It Works (ざっくり)
+## How It Works
 
-- Codex Desktop は `~/Library/Logs/com.openai.codex/**/codex-desktop-*-t0-*.log` にログを吐きます
-- その中の `[desktop-notifications] forward show ...` をトリガーに Slack へ投稿します
-- 通知本文/タイトルは Helper.app が通知バナーUIから取得します
+- Codex Desktop writes logs to `~/Library/Logs/com.openai.codex/**/codex-desktop-*-t0-*.log`
+- This tool watches for `[desktop-notifications] forward show ...` and posts to Slack
+- The Helper.app reads the notification banner UI to extract title/body
