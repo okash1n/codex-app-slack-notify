@@ -2,7 +2,7 @@
 
 English README: [README.md](./README.md)
 
-Codex Desktop のログから通知イベント（例: `turn-complete`）を検知して Slack に投稿します。
+Codex Desktop（macOS限定）のログから通知イベント（例: `turn-complete`）を検知して Slack に投稿します。
 
 ![Slack通知の稼働イメージ](https://github.com/user-attachments/assets/8dfc2af4-01e3-4b20-a514-5dea2024dbf7)
 

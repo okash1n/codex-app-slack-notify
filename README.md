@@ -2,7 +2,7 @@
 
 Japanese README: [README.ja.md](./README.ja.md)
 
-This project watches Codex Desktop logs for notification events (for example, `turn-complete`) and posts them to Slack.
+This project watches Codex Desktop (macOS only) logs for notification events (for example, `turn-complete`) and posts them to Slack.
 
 ![Slack notification example](https://github.com/user-attachments/assets/8dfc2af4-01e3-4b20-a514-5dea2024dbf7)
 
