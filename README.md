@@ -2,6 +2,8 @@
 
 Codex Desktop のログから通知イベント（例: `turn-complete`）を検知して Slack に投稿します。
 
+![Slack通知の稼働イメージ](https://github.com/user-attachments/assets/8dfc2af4-01e3-4b20-a514-5dea2024dbf7)
+
 macOSの通知本文はログだけでは取れないため、**通知バナーUIを読む Helper.app**（AppleScript）を併用して本文/タイトルを拾います。
 
 ## 出力フォーマット
